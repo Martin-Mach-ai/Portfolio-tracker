@@ -15,7 +15,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "pretest": "cross-env DATABASE_URL=file:./test.db prisma db push --skip-generate",
-    "test": "cross-env DATABASE_URL=file:./test.db vitest run tests/api.test.ts tests/portfolio.test.ts tests/xtb-parser.test.ts tests/trading212-parser.test.ts tests/performance-api.test.ts tests/llm-service.test.ts",
+    "test": "cross-env DATABASE_URL=file:./test.db vitest run tests/api.test.ts tests/chat-api.test.ts tests/portfolio.test.ts tests/xtb-parser.test.ts tests/trading212-parser.test.ts tests/performance-api.test.ts tests/llm-service.test.ts",
     "test:web": "npm --prefix frontend run test"
   },
   "dependencies": {

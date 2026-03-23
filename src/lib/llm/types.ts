@@ -1,6 +1,12 @@
+export type LlmChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export type LlmGenerateTextParams = {
   prompt: string;
   systemPrompt?: string;
+  messages?: LlmChatMessage[];
   temperature?: number;
   maxTokens?: number;
 };

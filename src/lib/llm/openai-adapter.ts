@@ -1,5 +1,11 @@
 import { AppError } from "../errors";
-import type { LlmGenerateTextParams, LlmGenerateTextResult, LlmProvider, LlmUsage } from "./types";
+import type {
+  LlmChatMessage,
+  LlmGenerateTextParams,
+  LlmGenerateTextResult,
+  LlmProvider,
+  LlmUsage,
+} from "./types";
 
 type OpenAiAdapterConfig = {
   apiKey: string;
@@ -36,6 +42,14 @@ type OpenAiResponsesApiResponse = {
   };
 };
 
+type OpenAiInputMessage = {
+  role: "user" | "assistant";
+  content: Array<{
+    type: "input_text";
+    text: string;
+  }>;
+};
+
 function buildUsage(usage: OpenAiResponsesApiResponse["usage"]): LlmUsage {
   return {
     inputTokens: usage?.input_tokens ?? null,
@@ -58,6 +72,18 @@ function extractOutputText(payload: OpenAiResponsesApiResponse): string | null {
   }
 
   return null;
+}
+
+function toOpenAiInputMessages(messages: LlmChatMessage[]): OpenAiInputMessage[] {
+  return messages.map((message) => ({
+    role: message.role,
+    content: [
+      {
+        type: "input_text",
+        text: message.content,
+      },
+    ],
+  }));
 }
 
 export class OpenAiLlmAdapter implements LlmProvider {
@@ -96,20 +122,17 @@ export class OpenAiLlmAdapter implements LlmProvider {
           model: this.model,
           temperature: params.temperature ?? this.temperature,
           max_output_tokens: params.maxTokens ?? this.maxTokens,
-          input: [
-            ...(params.systemPrompt
-              ? [
+          instructions: params.systemPrompt,
+          input: toOpenAiInputMessages(
+            params.messages && params.messages.length > 0
+              ? params.messages
+              : [
                   {
-                    role: "system",
-                    content: [{ type: "input_text", text: params.systemPrompt }],
+                    role: "user",
+                    content: params.prompt,
                   },
-                ]
-              : []),
-            {
-              role: "user",
-              content: [{ type: "input_text", text: params.prompt }],
-            },
-          ],
+                ],
+          ),
         }),
         signal: controller.signal,
       });

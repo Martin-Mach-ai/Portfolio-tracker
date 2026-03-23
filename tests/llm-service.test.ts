@@ -26,10 +26,10 @@ describe("LLM service", () => {
     const service = createLlmService(
       {
         LLM_PROVIDER: "openai",
-        OPENAI_API_KEY: "test-key",
-        OPENAI_MODEL: "gpt-4.1-mini",
-        OPENAI_TEMPERATURE: "0.7",
-        OPENAI_MAX_TOKENS: "321",
+        LLM_API_KEY: "test-key",
+        LLM_MODEL: "gpt-4o-mini",
+        LLM_TEMPERATURE: "0.7",
+        LLM_MAX_TOKENS: "1024",
         OPENAI_BASE_URL: "https://example.test/v1",
         LLM_REQUEST_TIMEOUT_MS: "1000",
       },
@@ -44,7 +44,7 @@ describe("LLM service", () => {
     });
 
     expect(result.text).toBe("Generated answer");
-    expect(result.model).toBe("gpt-4.1-mini");
+    expect(result.model).toBe("gpt-4o-mini");
     expect(result.usage.totalTokens).toBe(20);
     expect(fetchMock).toHaveBeenCalledWith(
       "https://example.test/v1/responses",
@@ -63,23 +63,23 @@ describe("LLM service", () => {
       max_output_tokens: number;
     };
 
-    expect(payload.model).toBe("gpt-4.1-mini");
+    expect(payload.model).toBe("gpt-4o-mini");
     expect(payload.temperature).toBe(0.7);
-    expect(payload.max_output_tokens).toBe(321);
+    expect(payload.max_output_tokens).toBe(1024);
   });
 
   it("throws a configuration error when the API key is missing", async () => {
     expect(() =>
       createLlmService({
-        OPENAI_MODEL: "gpt-4.1-mini",
+        LLM_MODEL: "gpt-4o-mini",
       }),
     ).toThrowError(AppError);
 
     expect(() =>
       createLlmService({
-        OPENAI_MODEL: "gpt-4.1-mini",
+        LLM_MODEL: "gpt-4o-mini",
       }),
-    ).toThrowError(/OPENAI_API_KEY/);
+    ).toThrowError(/LLM_API_KEY|OPENAI_API_KEY/);
   });
 
   it("wraps OpenAI API failures in application errors", async () => {
@@ -95,8 +95,8 @@ describe("LLM service", () => {
 
     const service = createLlmService(
       {
-        OPENAI_API_KEY: "test-key",
-        OPENAI_MODEL: "gpt-4.1-mini",
+        LLM_API_KEY: "test-key",
+        LLM_MODEL: "gpt-4o-mini",
       },
       {
         fetchImpl: fetchMock as unknown as typeof fetch,

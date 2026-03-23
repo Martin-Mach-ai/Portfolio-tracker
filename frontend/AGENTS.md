@@ -8,6 +8,8 @@ The frontend renders portfolio data, imports, and dashboards from backend APIs. 
 
 - The frontend must not call OpenAI or any other LLM provider directly.
 - Any future AI feature must go through backend endpoints that themselves use the shared backend LLM service.
+- Chat UI should send the current user message plus client-maintained conversation history to `POST /api/chat`.
+- The frontend should not assume the backend stores conversation history.
 - Keep UI copy and empty states explicit when backend data is missing or incomplete.
 
 ## Workflow

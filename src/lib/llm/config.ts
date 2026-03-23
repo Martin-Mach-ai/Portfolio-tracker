@@ -22,6 +22,26 @@ function readStringEnv(env: NodeJS.ProcessEnv, name: string, fallback?: string):
   return value;
 }
 
+function readStringEnvFromKeys(env: NodeJS.ProcessEnv, names: string[], fallback?: string): string {
+  for (const name of names) {
+    const value = env[name]?.trim();
+
+    if (value) {
+      return value;
+    }
+  }
+
+  if (fallback) {
+    return fallback;
+  }
+
+  throw new AppError(
+    503,
+    "LLM_CONFIGURATION_ERROR",
+    `Missing required environment variable ${names.join(" or ")}`,
+  );
+}
+
 function readNumberEnv(
   env: NodeJS.ProcessEnv,
   name: string,
@@ -59,6 +79,25 @@ function readNumberEnv(
   return parsedValue;
 }
 
+function readNumberEnvFromKeys(
+  env: NodeJS.ProcessEnv,
+  names: string[],
+  fallback: number,
+  options?: { min?: number; max?: number },
+): number {
+  for (const name of names) {
+    const rawValue = env[name]?.trim();
+
+    if (!rawValue) {
+      continue;
+    }
+
+    return readNumberEnv(env, name, fallback, options);
+  }
+
+  return fallback;
+}
+
 export function resolveLlmConfig(env: NodeJS.ProcessEnv = process.env): LlmConfig {
   const provider = (env.LLM_PROVIDER?.trim().toLowerCase() || "openai") as LlmProviderName;
 
@@ -68,10 +107,13 @@ export function resolveLlmConfig(env: NodeJS.ProcessEnv = process.env): LlmConfi
 
   return {
     provider,
-    apiKey: readStringEnv(env, "OPENAI_API_KEY"),
-    model: readStringEnv(env, "OPENAI_MODEL", "gpt-4.1-mini"),
-    temperature: readNumberEnv(env, "OPENAI_TEMPERATURE", 0.2, { min: 0, max: 2 }),
-    maxTokens: readNumberEnv(env, "OPENAI_MAX_TOKENS", 512, { min: 1 }),
+    apiKey: readStringEnvFromKeys(env, ["LLM_API_KEY", "OPENAI_API_KEY"]),
+    model: readStringEnvFromKeys(env, ["LLM_MODEL", "OPENAI_MODEL"], "gpt-4.1-mini"),
+    temperature: readNumberEnvFromKeys(env, ["LLM_TEMPERATURE", "OPENAI_TEMPERATURE"], 0.2, {
+      min: 0,
+      max: 2,
+    }),
+    maxTokens: readNumberEnvFromKeys(env, ["LLM_MAX_TOKENS", "OPENAI_MAX_TOKENS"], 512, { min: 1 }),
     timeoutMs: readNumberEnv(env, "LLM_REQUEST_TIMEOUT_MS", 30_000, { min: 1 }),
     baseUrl: readStringEnv(env, "OPENAI_BASE_URL", "https://api.openai.com/v1"),
   };

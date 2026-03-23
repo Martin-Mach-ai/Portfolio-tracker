@@ -13,6 +13,18 @@ Changes should preserve reliable import flows, correct portfolio math, and a UI 
 - Provider-specific details such as API base URL, model, temperature, max tokens, and API key must come from environment variables.
 - If the LLM provider changes in the future, contain that change to the adapter implementation and config wiring.
 - Secrets must never be hardcoded in source, tests, or committed example payloads.
+- The chatbot system prompt is loaded once at startup from `backend/chatbot-instructions.md`.
+- The chatbot API endpoint is `POST /api/chat` and accepts a user message plus client-supplied conversation history. The backend does not persist chat history.
+- Chat request shape:
+  - `message: string`
+  - `history: Array<{ role: "user" | "assistant"; content: string }>`
+- Chat response shape:
+  - `data.message.role`
+  - `data.message.content`
+  - `data.provider`
+  - `data.model`
+  - `data.finishReason`
+  - `data.usage`
 
 ## Workflow
 
