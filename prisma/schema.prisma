@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  BUY
+  SELL
+}
+
+enum Broker {
+  XTB
+  TRADING212
+}
+
+enum AssetClass {
+  STOCK
+  ETF
+  CFD
+  CRYPTO
+  FOREX
+  UNKNOWN
+}
+
+enum ImportLeg {
+  OPEN
+  CLOSE
+}
+
+enum ImportedPositionState {
+  OPEN
+  CLOSED
+}
+
+model Asset {
+  id           String        @id @default(cuid())
+  symbol       String        @unique
+  name         String
+  currency     String
+  assetClass   AssetClass    @default(UNKNOWN)
+  portfolioEligible Boolean  @default(true)
+  currentPrice Decimal       @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+}
+
+model Transaction {
+  id                 String           @id @default(cuid())
+  assetId            String
+  type               TransactionType
+  quantity           Decimal
+  price              Decimal
+  fee                Decimal          @default(0)
+  occurredAt         DateTime
+  note               String?
+  importLeg          ImportLeg?
+  importedPositionId String?
+  importedBrokerRowId String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  asset              Asset            @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  importedPosition   ImportedPosition? @relation(fields: [importedPositionId], references: [id], onDelete: SetNull)
+  importedBrokerRow  ImportedBrokerRow? @relation(fields: [importedBrokerRowId], references: [id], onDelete: SetNull)
+
+  @@index([assetId, occurredAt, createdAt])
+  @@unique([importedPositionId, importLeg])
+}
+
+model ImportedPosition {
+  id                String                @id @default(cuid())
+  broker            Broker
+  externalId        String
+  symbol            String
+  currency          String
+  assetClass        AssetClass            @default(UNKNOWN)
+  portfolioEligible Boolean               @default(true)
+  exclusionReason   String?
+  category          String?
+  positionState     ImportedPositionState @default(CLOSED)
+  direction         TransactionType
+  openTime          DateTime
+  closeTime         DateTime?
+  volume            Decimal
+  openPrice         Decimal
+  closePrice        Decimal?
+  profit            Decimal?
+  createdAt         DateTime              @default(now())
+  transactions      Transaction[]
+
+  @@unique([broker, externalId])
+}
+
+model ImportedBrokerRow {
+  id           String        @id @default(cuid())
+  broker       Broker
+  fingerprint  String
+  externalId   String?
+  symbol       String
+  currency     String
+  occurredAt   DateTime
+  sourceRow    Int
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+
+  @@unique([broker, fingerprint])
+}

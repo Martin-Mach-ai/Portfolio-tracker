@@ -1,0 +1,5 @@
+
+> portfolio-tracker-backend@1.0.0 dev:api
+> tsx watch src/server.ts
+
+Portfolio tracker API listening on http://localhost:3000

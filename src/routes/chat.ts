@@ -17,7 +17,7 @@ chatRouter.post(
       prompt: input.message,
       systemPrompt: getChatbotInstructions(),
       messages: [
-        ...input.history,
+        ...(input.history ?? []),
         {
           role: "user",
           content: input.message,
